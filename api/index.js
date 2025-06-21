@@ -1,14 +1,30 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+export default async function handler(req, res) {
+  if (req.method === "POST") {
+    const message = req.body?.message?.text || "";
+    const chatId = req.body?.message?.chat?.id;
 
-const app = express();
-app.use(bodyParser.json());
+    if (message === "/start") {
+      return res.status(200).json({
+        method: "sendMessage",
+        chat_id: chatId,
+        text: "🚀 Welcome to Adityalytics Bot!\nI’m here to help you analyze trades, scan portfolios, and predict smarter moves."
+      });
+    }
 
-const secretPath = process.env.SECRET_PATH || 'adityalytics_webhook_key';
+    if (message === "/help") {
+      return res.status(200).json({
+        method: "sendMessage",
+        chat_id: chatId,
+        text: "💡 Try commands like:\n/start – Welcome message\n/help – List available commands\nMore coming soon!"
+      });
+    }
 
-app.post(`/${secretPath}`, (req, res) => {
-  console.log('✅ Webhook triggered:', req.body);
-  res.status(200).send('Received.');
-});
+    return res.status(200).json({
+      method: "sendMessage",
+      chat_id: chatId,
+      text: "🤖 Sorry, I didn’t understand that command. Try /help"
+    });
+  }
 
-module.exports = app;
+  return res.status(200).send("✅ Adityalytics Bot API is live.");
+}
