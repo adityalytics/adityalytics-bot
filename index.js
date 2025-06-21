@@ -1,21 +1,38 @@
-const express = require("express");
-const { Telegraf } = require("telegraf");
+const express = require('express');
+const bodyParser = require('body-parser');
+const fetch = require('node-fetch');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Replace with your bot token
-const bot = new Telegraf("7662734078:AAGy0XYL2dQPV9Ndr4Oxnqx8LycCf-WsT5g");
+// Use environment variables from Vercel
+const TOKEN = process.env.BOT_TOKEN;
+const SECRET_PATH = process.env.SECRET_PATH;
 
-bot.start((ctx) => ctx.reply("Welcome to Adityalytics Bot! 🚀"));
+app.use(bodyParser.json());
 
-bot.launch();
-console.log("🤖 Telegram bot started");
+// Secure webhook route using secret path
+app.post(`/${SECRET_PATH}`, async (req, res) => {
+  try {
+    const message = req.body.message;
+    const chatId = message.chat.id;
+    const userText = message.text;
 
-app.get("/", (req, res) => {
-  res.send("Adityalytics Bot is running ✅");
+    // Basic reply
+    await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `👋 Hello from Adityalytics!\nYou said: "${userText}"`
+      }),
+    });
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('Error handling update:', err);
+    res.sendStatus(500);
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Vercel compatibility
+module.exports = app;
